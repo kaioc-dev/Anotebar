@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoungeBar - Pro</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-main: #f0f6fc;
+            --text-muted: #8b949e;
+            --border-color: #30363d;
+            --accent-color: #e3b341; /* Dourado Whiskey */
+            --accent-glow: rgba(227, 179, 65, 0.2);
+            --danger: #f85149;
+            --success: #238636;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            overscroll-behavior: none; /* Evita o "puxar para atualizar" em navegadores */
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        h1 b { color: var(--accent-color); font-weight: 700; }
+
+        /* Grid de Mesas */
+        .mesas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 12px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .mesa-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* Mesa Ocupada */
+        .mesa-btn.ocupada {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background-color: #1c1a15;
+            box-shadow: inset 0 0 10px var(--accent-glow);
+        }
+
+        .mesa-btn.ocupada::after {
+            content: '•';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 18px;
+        }
+
+        /* Modal do Pedido */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .modal-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .header-modal {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-modal h2 { margin: 0; color: var(--accent-color); }
+
+        .btn-fechar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .campo {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, textarea {
+            width: 100%;
+            background: #010409;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white;
+            padding: 12px;
+            font-size: 16px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        textarea {
+            flex-grow: 1; /* Faz o campo de texto ocupar o espaço restante */
+            min-height: 250px;
+            resize: none;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .footer-modal {
+            padding-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-acao {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn-excluir {
+            background-color: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-concluir {
+            background-color: var(--success);
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Lounge<b>Bar</b></h1>
+    </header>
+    
+    <div class="mesas-grid" id="grid"></div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <div class="header-modal">
+                <h2 id="titulo-mesa">Mesa 01</h2>
+                <button class="btn-fechar" onclick="fechar()">Voltar</button>
+            </div>
+
+            <div class="campo">
+                <label>Nome do Cliente</label>
+                <input type="text" id="input-nome" placeholder="Ex: Marcos Silva" oninput="salvarProgresso()">
+            </div>
+
+            <div class="campo" style="flex-grow: 1; display: flex; flex-direction: column;">
+                <label>Comanda / Pedidos</label>
+                <textarea id="input-pedidos" placeholder="Anote os itens aqui..." oninput="salvarProgresso()"></textarea>
+            </div>
+
+            <div class="footer-modal">
+                <button class="btn-acao btn-excluir" onclick="excluirComanda()">Excluir Comanda</button>
+                <button class="btn-acao btn-concluir" onclick="fechar()">Concluir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const modal = document.getElementById('modal');
+        const inputNome = document.getElementById('input-nome');
+        const inputPedidos = document.getElementById('input-pedidos');
+        const tituloMesa = document.getElementById('titulo-mesa');
+        
+        let mesaAtiva = null;
+        // Carrega dados ou cria objeto vazio
+        let db = JSON.parse(localStorage.getItem('LoungeBar_DB')) || {};
+
+        // Cria as 25 mesas
+        function renderGrid() {
+            grid.innerHTML = '';
+            for (let i = 1; i <= 25; i++) {
+                const btn = document.createElement('div');
+                btn.className = `mesa-btn ${db[i] ? 'ocupada' : ''}`;
+                btn.innerHTML = i;
+                btn.onclick = () => abrirMesa(i);
+                grid.appendChild(btn);
+            }
+        }
+
+        function abrirMesa(id) {
+            mesaAtiva = id;
+            tituloMesa.innerText = `Mesa ${id.toString().padStart(2, '0')}`;
+            
+            // Preenche se já houver dados
+            const dados = db[id] || { nome: '', pedidos: '' };
+            inputNome.value = dados.nome;
+            inputPedidos.value = dados.pedidos;
+
+            modal.style.display = 'flex';
+        }
+
+        // SALVAMENTO EM TEMPO REAL
+        function salvarProgresso() {
+            if (!mesaAtiva) return;
+
+            const nome = inputNome.value.trim();
+            const pedidos = inputPedidos.value.trim();
+
+            if (nome === '' && pedidos === '') {
+                delete db[mesaAtiva];
+            } else {
+                db[mesaAtiva] = { nome, pedidos };
+            }
+
+            // Salva no LocalStorage imediatamente
+            localStorage.setItem('LoungeBar_DB', JSON.stringify(db));
+            
+            // Atualiza o visual das mesas no fundo sem precisar recarregar tudo
+            const botoes = document.querySelectorAll('.mesa-btn');
+            const btnMesa = botoes[mesaAtiva - 1];
+            if (db[mesaAtiva]) {
+                btnMesa.classList.add('ocupada');
+            } else {
+                btnMesa.classList.remove('ocupada');
+            }
+        }
+
+        function excluirComanda() {
+            if (confirm("Tem certeza que deseja apagar todos os dados desta mesa?")) {
+                inputNome.value = '';
+                inputPedidos.value = '';
+                salvarProgresso();
+                fechar();
+            }
+        }
+
+        function fechar() {
+            modal.style.display = 'none';
+            mesaAtiva = null;
+            renderGrid(); // Garante que o grid está atualizado ao voltar
+        }
+
+        // Inicia
+        renderGrid();
+    </script>
+</body>
+</html>
